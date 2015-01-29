@@ -35,7 +35,7 @@
  */
 struct app_qpps_env_tag *app_qpps_env = &app_env.qpps_ev;
 
-static void app_test_send_data(uint8_t);
+//static void app_test_send_data(uint8_t);
 
 /*
  ****************************************************************************************
@@ -167,7 +167,7 @@ int app_qpps_data_send_cfm_handler(ke_msg_id_t const msgid,
         // Send next group data until current data have been sent
         if (get_bit_num(app_qpps_env->char_status) == (app_qpps_env->tx_char_num - 1))
         {
-            app_test_send_data(app_qpps_env->tx_char_num - 1);
+//            app_test_send_data(app_qpps_env->tx_char_num - 1);
         }
     }
     else
@@ -208,7 +208,7 @@ int app_qpps_cfg_indntf_ind_handler(ke_msg_id_t const msgid,
             if (get_bit_num(app_qpps_env->features) == app_qpps_env->tx_char_num)
             {
                 app_qpps_env->char_status = app_qpps_env->features;
-                app_test_send_data(app_qpps_env->tx_char_num - 1);
+//                app_test_send_data(app_qpps_env->tx_char_num - 1);
             }
         }
         else
@@ -246,6 +246,7 @@ int app_qpps_data_ind_handler(ke_msg_id_t const msgid,
         QPRINTF("len=%d, I%02X", param->length, param->data[0]);
     }
     QPRINTF("\r\n");
+		app_task_msg_hdl(msgid,param);
 
     return (KE_MSG_CONSUMED);
 }
@@ -259,26 +260,26 @@ int app_qpps_data_ind_handler(ke_msg_id_t const msgid,
  *
  ****************************************************************************************
  */
-static void app_test_send_data(uint8_t max)
-{
-    uint8_t cnt;
+//static void app_test_send_data(uint8_t max)
+//{
+//    uint8_t cnt;
 
-    for (cnt = 0; (max != 0) && cnt < app_qpps_env->tx_char_num; cnt++)
-    {
-        if ((app_qpps_env->char_status >> cnt) & QPPS_VALUE_NTF_CFG)
-        {
-            static uint8_t val[] = {0, '0', '1', '2','3','4','5','6','7','8','9','8','7','6','5','4','3','2','1','0'};
+//    for (cnt = 0; (max != 0) && cnt < app_qpps_env->tx_char_num; cnt++)
+//    {
+//        if ((app_qpps_env->char_status >> cnt) & QPPS_VALUE_NTF_CFG)
+//        {
+//            static uint8_t val[] = {0, '0', '1', '2','3','4','5','6','7','8','9','8','7','6','5','4','3','2','1','0'};
 
-            // Increment the first byte for test 
-            val[0]++;
+//            // Increment the first byte for test 
+//            val[0]++;
 
-            max--;
-            // Allow next notify until confirmation received in this characteristic
-            app_qpps_env->char_status &= ~(QPPS_VALUE_NTF_CFG << cnt);
-            app_qpps_data_send(app_qpps_env->conhdl, cnt, sizeof(val), val);
-        }
-    }
-}
+//            max--;
+//            // Allow next notify until confirmation received in this characteristic
+//            app_qpps_env->char_status &= ~(QPPS_VALUE_NTF_CFG << cnt);
+//            app_qpps_data_send(app_qpps_env->conhdl, cnt, sizeof(val), val);
+//        }
+//    }
+//}
 
 /// @endcond
 

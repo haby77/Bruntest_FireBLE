@@ -206,6 +206,11 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
                 }
             }
             break;
+				case QPPS_DAVA_VAL_IND:
+				{
+						app_qpps_data_send(app_qpps_env->conhdl,0,((struct qpps_data_val_ind*)param)->length,((struct qpps_data_val_ind*)param)->data);
+				}
+					break;
 
         case QPPS_DISABLE_IND:
             break;
