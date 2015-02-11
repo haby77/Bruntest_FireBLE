@@ -21,7 +21,7 @@
  */
 
  #if !defined(QN_9021_MINIDK)
-   #if !defined(FireBlue_platform)
+   #if !defined(FireBLE_platform)
      #define LED1_PIN    (GPIO_P05)
      #define LED2_PIN    (GPIO_P04)
      #define LED3_PIN    (GPIO_P03)
@@ -29,7 +29,7 @@
      #define LED5_PIN    (GPIO_P01)
    #else
      #define	LED1_PIN	 (GPIO_P27)
-     #if !defined(QN_SWD)
+     #if !(FB_SWD)
        #define LED2_PIN   (GPIO_P06)
        #define LED3_PIN   (GPIO_P07)
      #else

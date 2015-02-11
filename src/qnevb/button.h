@@ -19,7 +19,7 @@
  ****************************************************************************************
  */
  #if !defined(QN_9021_MINIDK)
-   #if !defined(FireBlue_platform)
+   #if !defined(FireBLE_platform)
      #define BUTTON1_PIN    (GPIO_P14)
      #define BUTTON2_PIN    (GPIO_P15)
    #else

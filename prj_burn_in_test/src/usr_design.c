@@ -36,6 +36,10 @@
 #include "wdt.h"
 #endif
 #include "sleep.h"
+#include	"buzz.h"
+#if (FB_JOYSTICKS)
+#include "joysticks.h"
+#endif
 
 /*
  * MACRO DEFINITIONS
@@ -77,9 +81,9 @@ static void adv_wdt_to_handler(void)
                           app_env.scanrsp_data, app_set_scan_rsp_data(app_get_local_service_flag()),
                           GAP_ADV_FAST_INTV1, GAP_ADV_FAST_INTV2);
 }
-struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE, false, adv_wdt_to_handler};
+struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE, false, adv_wdt_to_handler,0};
 #else
-struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE};
+struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE,0};
 #endif
 
 /*
@@ -137,6 +141,37 @@ static void usr_led1_process(void)
 
 /**
  ****************************************************************************************
+ * @brief   Show proxr alert. User can add their own code here to show alert.
+ ****************************************************************************************
+ */
+static void usr_proxr_alert(struct proxr_alert_ind *param)
+{
+    // If it is PROXR_LLS_CHAR writting indication, don't alert,
+    // otherwise (PROXR_IAS_CHAR, disconnect) to alert
+    if (param->char_code == PROXR_IAS_CHAR || app_proxr_env->enabled == false)
+    {
+        if(param->alert_lvl == 2)
+        {
+            buzzer_on(BUZZ_VOL_HIGH);
+            ke_timer_set(APP_PROXR_ALERT_STOP_TIMER, TASK_APP, 500);    // 5 seconds
+        }
+        else if(param->alert_lvl == 1)
+        {
+            buzzer_on(BUZZ_VOL_LOW);
+            ke_timer_set(APP_PROXR_ALERT_STOP_TIMER, TASK_APP, 500);    // 5 seconds
+        }
+        else
+        {
+            buzzer_off();
+            ke_timer_clear(APP_PROXR_ALERT_STOP_TIMER, TASK_APP);
+        }
+    }
+
+}
+
+
+/**
+ ****************************************************************************************
  * @brief   Application task message handler
  ****************************************************************************************
  */
@@ -160,6 +195,9 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
                 usr_env.adv_wdt_enable = true;
 #endif
             }
+						
+						usr_env.test_flag = 0;
+						
             break;
 
         case GAP_ADV_REQ_CMP_EVT:
@@ -170,6 +208,7 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
         case GAP_DISCON_CMP_EVT:
             usr_led1_set(LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE);
 
+						if (!usr_env.test_flag)
             // start adv
             app_gap_adv_start_req(GAP_GEN_DISCOVERABLE|GAP_UND_CONNECTABLE,
                     app_env.adv_data, app_set_adv_data(GAP_GEN_DISCOVERABLE),
@@ -208,7 +247,12 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
             break;
 				case QPPS_DAVA_VAL_IND:
 				{
+						if (((struct qpps_data_val_ind*)param)->data[0] == 'C' )
+							usr_env.test_flag  = 1;
 						app_qpps_data_send(app_qpps_env->conhdl,0,((struct qpps_data_val_ind*)param)->length,((struct qpps_data_val_ind*)param)->data);
+						for (uint8_t k = 0;k < ((struct qpps_data_val_ind*)param)->length;k++)
+							QPRINTF("%c",((struct qpps_data_val_ind*)param)->data[k]);
+						QPRINTF("\r\n");
 				}
 					break;
 
@@ -217,6 +261,10 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
 
         case QPPS_CFG_INDNTF_IND:
             break;
+				case PROXR_ALERT_IND:
+            usr_proxr_alert((struct proxr_alert_ind*)param);
+            break;
+
 
         default:
             break;
@@ -299,6 +347,65 @@ void usr_sleep_restore(void)
 #endif
 }
 
+///**
+// ****************************************************************************************
+// * @brief Handles LED status timer.
+// *
+// * @param[in] msgid      APP_SYS_UART_DATA_IND
+// * @param[in] param      Pointer to struct app_uart_data_ind
+// * @param[in] dest_id    TASK_APP
+// * @param[in] src_id     TASK_APP
+// *
+// * @return If the message was consumed or not.
+// ****************************************************************************************
+// */
+//int app_led_timer_handler(ke_msg_id_t const msgid, void const *param,
+//                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+//{
+//    if(msgid == APP_SYS_LED_1_TIMER)
+//    {
+//        usr_led1_process();
+//    }
+
+//    return (KE_MSG_CONSUMED);
+//}
+
+
+/**
+ ****************************************************************************************
+ * @brief Handles alert stop timer.
+ *
+ * @param[in] msgid     APP_PROXR_ALERT_STOP_TO
+ * @param[in] param     Null
+ * @param[in] dest_id   TASK_APP
+ * @param[in] src_id    TASK_NONE
+ *
+ * @return If the message was consumed or not.
+ * @description
+ * This handler is used to request the Application to start the alert on the device
+ * considering the indicated alert level. The handler may be triggered on two conditions:
+ * The IAS alert level characteristic has been written to a valid value, in which case
+ * alert_lvl will be set to the IAS alert level value.
+ * A disconnection with a reason other than the normal local/remote link terminations has
+ * been received, in which case alert_lvl will be set to the LLS alert level value.
+ * The Application actions following reception of this indication are strictly implementation
+ * specific (it may try to reconnect to the peer and stop alert upon that, or timeout the
+ * alert after acertain time, please see the specification)
+ ****************************************************************************************
+ */
+int app_proxr_alert_to_handler(ke_msg_id_t const msgid,
+                               void *param,
+                               ke_task_id_t const dest_id,
+                               ke_task_id_t const src_id)
+{
+    // Stop proxr alert
+    buzzer_off();
+
+    //app_proxr_env->alert_lvl = 0;
+    QPRINTF("alert_stop_timer_handler.\r\n");
+    return (KE_MSG_CONSUMED);
+}
+
 /**
  ****************************************************************************************
  * @brief Handles button press after cancel the jitter.
@@ -375,7 +482,11 @@ void app_event_button1_press_handler(void)
 #endif
 
     // delay 20ms to debounce
+#if (FB_JOYSTICKS)
+    ke_timer_set(APP_KEY_SCAN_TIMER,TASK_APP,2);
+#else
     ke_timer_set(APP_SYS_BUTTON_1_TIMER, TASK_APP, 2);
+#endif
     ke_evt_clear(1UL << EVENT_BUTTON1_PRESS_ID);
 }
 
@@ -402,6 +513,9 @@ void usr_button1_cb(void)
 
     }
 
+#if (FB_JOYSTICKS)
+    usr_button_env.button_st = button_press;
+#endif
     // key debounce:
     // We can set a soft timer to debounce.
     // After wakeup BLE, the timer is not calibrated immediately and it is not precise.
@@ -449,6 +563,13 @@ void usr_init(void)
     {
         ASSERT_ERR(0);
     }
+#if 	(FB_JOYSTICKS)
+		if(KE_EVENT_OK != ke_evt_callback_set(EVENT_ADC_KEY_SAMPLE_CMP_ID,
+                                            app_event_adc_key_sample_cmp_handler))
+    {
+        ASSERT_ERR(0);
+    }
+#endif
 }
 
 /// @} USR

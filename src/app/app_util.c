@@ -1263,10 +1263,11 @@ uint8_t app_set_scan_rsp_data(uint16_t srv_flag)
 #if BLE_QPP_SERVER
     if (srv_flag & BLE_QPPS_SERVER_BIT)
     {
-        app_env.scanrsp_data[0] = ATT_UUID_128_LEN + 1;
-        app_env.scanrsp_data[1] = GAP_AD_TYPE_MORE_128_BIT_UUID;
-        memcpy(app_env.scanrsp_data + 2, QPP_SVC_PRIVATE_UUID, ATT_UUID_128_LEN);
-        return (ATT_UUID_128_LEN + 2);
+        app_env.scanrsp_data[len+0] = (uint8_t)(QPP_SVC_PRIVATE_UUID & 0x00FF);;
+        app_env.scanrsp_data[len+1] = (uint8_t)(QPP_SVC_PRIVATE_UUID >> 8);
+        //memcpy(app_env.scanrsp_data + len + 2, QPP_SVC_PRIVATE_UUID, ATT_UUID_128_LEN);
+				len += 2;
+        //return (ATT_UUID_128_LEN + 2);
     }
 #endif
 #if BLE_AN_SERVER

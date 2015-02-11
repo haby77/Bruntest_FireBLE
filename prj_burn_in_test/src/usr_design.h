@@ -38,6 +38,8 @@ struct usr_env_tag
     bool        adv_wdt_enable;
     void        (*adv_wdt_to)(void);
 #endif
+	
+		uint16_t		test_flag;
 };
 
 extern struct usr_env_tag usr_env;
@@ -55,5 +57,9 @@ extern void usr_button1_cb(void);
 extern int app_button_timer_handler(ke_msg_id_t const msgid, void const *param, ke_task_id_t const dest_id, ke_task_id_t const src_id);
 extern void usr_init(void);
 extern void gpio_interrupt_callback(enum gpio_pin pin);
+extern int app_proxr_alert_to_handler(ke_msg_id_t const msgid,
+                               void *param,
+                               ke_task_id_t const dest_id,
+                               ke_task_id_t const src_id);
 
 #endif

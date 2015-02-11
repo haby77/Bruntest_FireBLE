@@ -363,7 +363,7 @@
               <MiscControls>--C99</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src\fw;..\..\src\profiles;..\..\src\profiles\qpp;..\..\src\profiles\qpp\qpps;..\..\src\profiles\dis\diss;..\..\src\app;..\..\src\app\gap;..\..\src\app\gatt;..\..\src\app\smp;..\..\src\app\qpps;..\..\src\app\diss;..\..\src\cmsis;..\..\src\driver;..\..\src\lib;..\..\src\qnevb;..\src</IncludePath>
+              <IncludePath>..\..\src\fw;..\..\src\profiles;..\..\src\profiles\qpp;..\..\src\profiles\qpp\qpps;..\..\src\profiles\dis\diss;..\..\src\app;..\..\src\app\gap;..\..\src\app\gatt;..\..\src\app\smp;..\..\src\app\qpps;..\..\src\app\diss;..\..\src\cmsis;..\..\src\driver;..\..\src\lib;..\..\src\qnevb;..\src;..\..\src\app\proxr;..\..\src\profiles\prox\proxr</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -518,6 +518,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\app\qpps\app_qpps_task.c</FilePath>
             </File>
+            <File>
+              <FileName>app_proxr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\proxr\app_proxr.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_proxr_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\proxr\app_proxr_task.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -537,6 +547,16 @@
               <FileName>diss_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\profiles\dis\diss\diss_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>proxr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\profiles\prox\proxr\proxr.c</FilePath>
+            </File>
+            <File>
+              <FileName>proxr_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\profiles\prox\proxr\proxr_task.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -578,6 +598,21 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\driver\rtc.c</FilePath>
             </File>
+            <File>
+              <FileName>adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\driver\adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>analog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\driver\analog.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\driver\pwm.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -607,6 +642,16 @@
               <FileName>button.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\qnevb\button.c</FilePath>
+            </File>
+            <File>
+              <FileName>buzz.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\qnevb\buzz.c</FilePath>
+            </File>
+            <File>
+              <FileName>joysticks.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\qnevb\joysticks.c</FilePath>
             </File>
           </Files>
         </Group>

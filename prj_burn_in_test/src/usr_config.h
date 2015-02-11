@@ -26,7 +26,10 @@
  /// Evaluation board indication
  // The GPIOs used for FireBlue's LED and button are different from FireBlue.
  // If the FireBlue is used, the following macro shall be defined.
- #define CFG_FireBlue
+ #define CFG_FireBLE
+ 
+ ///FireBlue Joystick button
+#define	CFG_JOYSTICKS
 
 /// Easy ACI
 // #define CFG_EACI
@@ -39,7 +42,7 @@
 #endif
 
 /// Local name
-#define CFG_LOCAL_NAME   "FireBlue QPPS"
+#define CFG_LOCAL_NAME   "FireBLE QPPS"
 
 /// DC-DC enable
 #define CFG_DC_DC
@@ -54,7 +57,7 @@
 //#define CFG_TEST_CTRL_PIN GPIO_P31
 
  ///defined it when used SWD Debug,and LED2/LED3 will do not work.
- #define  QN_SWD
+// #define  QN_SWD
 
 /// ADV watchdog timer
 #if (defined(CFG_FW_V18))
@@ -142,8 +145,8 @@
 // #define CFG_TASK_PXPM   TASK_PRF1
 
 /// Proximity Profile Reporter Role
-// #define CFG_PRF_PXPR
-// #define CFG_TASK_PXPR   TASK_PRF1
+ #define CFG_PRF_PXPR
+ #define CFG_TASK_PXPR   TASK_PRF1
 
 ///Find Me Profile Locator role
 // #define CFG_PRF_FMPL

@@ -41,6 +41,10 @@
 #include "app_eaci_trans.h"
 #endif
 
+#if (FB_JOYSTICKS)
+#include "joysticks.h"
+#endif
+
 /*
  * FUNCTION DEFINITIONS
  ****************************************************************************************
@@ -183,6 +187,10 @@ const struct ke_msg_handler app_default_state[] =
 #endif
     {APP_SYS_BUTTON_1_TIMER,                (ke_msg_func_t) app_button_timer_handler},
     {APP_SYS_BUTTON_2_TIMER,                (ke_msg_func_t) app_button_timer_handler},
+#endif
+#if (FB_JOYSTICKS)
+		{APP_KEY_PROCESS_TIMER,						(ke_msg_func_t) app_key_process_timer_handler},
+		{APP_KEY_SCAN_TIMER,						(ke_msg_func_t) app_key_scan_timer_handler},
 #endif
 #endif
 #endif
