@@ -32,7 +32,7 @@
 #define	CFG_JOYSTICKS
 
 ///FireBLE Burn in test
-#define	CFG_BURN_IN_TEST
+ #define	CFG_BURN_IN_TEST
 
 /// Easy ACI
 // #define CFG_EACI
@@ -234,6 +234,10 @@
 ///Cycling Speed and Cadence Sensor Role
 // #define CFG_PRF_CSCPS
 // #define CFG_TASK_CSCPS   TASK_PRF1
+
+/// OTA Server Role
+ #define CFG_PRF_OTAS
+ #define CFG_TASK_OTAS   TASK_PRF7
 
 #endif
 

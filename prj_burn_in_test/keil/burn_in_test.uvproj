@@ -363,7 +363,7 @@
               <MiscControls>--C99</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src\fw;..\..\src\profiles;..\..\src\profiles\qpp;..\..\src\profiles\qpp\qpps;..\..\src\profiles\dis\diss;..\..\src\app;..\..\src\app\gap;..\..\src\app\gatt;..\..\src\app\smp;..\..\src\app\qpps;..\..\src\app\diss;..\..\src\cmsis;..\..\src\driver;..\..\src\lib;..\..\src\qnevb;..\src;..\..\src\app\proxr;..\..\src\profiles\prox\proxr</IncludePath>
+              <IncludePath>..\..\src\fw;..\..\src\profiles;..\..\src\profiles\qpp;..\..\src\profiles\qpp\qpps;..\..\src\profiles\dis\diss;..\..\src\app;..\..\src\app\gap;..\..\src\app\gatt;..\..\src\app\smp;..\..\src\app\qpps;..\..\src\app\diss;..\..\src\cmsis;..\..\src\driver;..\..\src\lib;..\..\src\qnevb;..\src;..\..\src\app\proxr;..\..\src\profiles\prox\proxr;..\..\src\app\otas;..\..\src\profiles\ota\otas</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -528,6 +528,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\app\proxr\app_proxr_task.c</FilePath>
             </File>
+            <File>
+              <FileName>app_otas_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\otas\app_otas_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>serialflash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\driver\serialflash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -637,6 +647,11 @@
               <FileName>qn_qpp.lib</FileName>
               <FileType>4</FileType>
               <FilePath>..\..\src\profiles\qpp\qpps\qn_qpp.lib</FilePath>
+            </File>
+            <File>
+              <FileName>qn_ota.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\src\profiles\ota\otas\qn_ota.lib</FilePath>
             </File>
           </Files>
         </Group>

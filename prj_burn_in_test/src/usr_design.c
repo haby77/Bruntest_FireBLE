@@ -149,6 +149,7 @@ static void usr_led1_process(void)
     }
 }
 
+#if	(FB_BIT)
 /**
  ****************************************************************************************
  * @brief   Led 1 flash process
@@ -172,6 +173,7 @@ int app_test_led_process_timer_handler(ke_msg_id_t const msgid, void const *para
     }
 		return(KE_MSG_CONSUMED);
 }
+#endif
 
 /**
  ****************************************************************************************
@@ -287,6 +289,7 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
 //							if 		(((struct qpps_data_val_ind*)param)->data[0] == 'T' )				
 //									ke_timer_set(APP_MPU6050_TEMPERATURE_TEST_TIMER,TASK_APP,2);
 						//app_qpps_data_send(app_qpps_env->conhdl,0,((struct qpps_data_val_ind*)param)->length,((struct qpps_data_val_ind*)param)->data);
+#if	(FB_BIT)
 						switch(((struct qpps_data_val_ind*)param)->data[0])
 						{
 								case	'T'	:
@@ -310,10 +313,11 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
 								
 								default	:break;
 						}
+						usr_env.time++;
+#endif
 						for (uint8_t k = 0;k < ((struct qpps_data_val_ind*)param)->length;k++)
 							QPRINTF("%c",((struct qpps_data_val_ind*)param)->data[k]);
 						QPRINTF("\r\n");
-						usr_env.time++;
 				}
 					break;
 
@@ -326,6 +330,19 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
             usr_proxr_alert((struct proxr_alert_ind*)param);
             break;
 
+#if	(BLE_OTA_SERVER)						
+        case OTAS_TRANSIMIT_STATUS_IND:
+            QPRINTF(" APP get OTA transmit status = %d , describe = %d \r\n" , ((struct otas_transimit_status_ind*)param)->status,
+                                                                              ((struct otas_transimit_status_ind*)param)->status_des);
+            
+            //only need response once when ota status is in ota status start request
+            if(((struct otas_transimit_status_ind*)param)->status == OTA_STATUS_START_REQ)  
+            {
+                app_ota_ctrl_resp(START_OTA);
+            }
+            break;
+//end
+#endif
 
         default:
             break;
@@ -396,11 +413,12 @@ int app_mpu6050_addr_read_test_timer_handler(ke_msg_id_t const msgid, void const
 		usr_env.mpu6050_data.addr_data = mpu6050_get_data(MPU6050_ADDR,WHO_AM_I);
 		//QPRINTF("0x%02X\r\n",usr_env.mpu6050_data.addr_data);
 		ke_timer_clear(APP_MPU6050_ADD_READ_TIMER,TASK_APP);
+#if	(FB_BIT)
 		ke_timer_set(APP_TEST_DATA_SEND_TIMER,TASK_APP,2);
+#endif
 
     return (KE_MSG_CONSUMED);
 }
-
 /**
  ****************************************************************************************
  * @brief Handles LED status timer.
@@ -462,9 +480,11 @@ int app_test_passed_timer_handler(ke_msg_id_t const msgid, void const *param,
 		led_set(2,LED_ON);
 		led_set(3,LED_ON);
 		usr_env.test_flag  = 1;
+		app_qpps_data_send(app_qpps_env->conhdl,0,12,(uint8_t *)"Test passed!");
     return (KE_MSG_CONSUMED);
 }
 
+#if	(FB_BIT)
 /**
  ****************************************************************************************
  * @brief Handles LED status timer.
@@ -484,11 +504,15 @@ int app_test_error_timer_handler(ke_msg_id_t const msgid, void const *param,
 		{
 			case	0x30+0x01:
 			{
+					buzzer_off();
+					ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
 					led_set(2,LED_ON);
 					led_set(3,LED_OFF);
 			}break;
 			case	0x30+0x02:
 			{
+					buzzer_off();
+					ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
 					led_set(2,LED_OFF);
 					led_set(3,LED_ON);					
 			}break;
@@ -510,11 +534,21 @@ int app_test_error_timer_handler(ke_msg_id_t const msgid, void const *param,
 					buzzer_on(BUZZ_VOL_HIGH);
 			}break;
 			
-			default	:break;
+			default	:
+			{
+					led_set(2,LED_OFF);
+					led_set(3,LED_OFF);
+					buzzer_off();
+					ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
+			}
+			break;
 		}
 		usr_env.test_flag  = 1;
+		app_qpps_data_send(app_qpps_env->conhdl,0,11,(uint8_t *)"Test error!");
     return (KE_MSG_CONSUMED);
 }
+#endif
+
 /**
  ****************************************************************************************
  * @brief Handles advertising mode timer event.
