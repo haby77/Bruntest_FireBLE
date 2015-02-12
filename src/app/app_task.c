@@ -45,6 +45,7 @@
 #include "joysticks.h"
 #endif
 
+
 /*
  * FUNCTION DEFINITIONS
  ****************************************************************************************
@@ -189,8 +190,19 @@ const struct ke_msg_handler app_default_state[] =
     {APP_SYS_BUTTON_2_TIMER,                (ke_msg_func_t) app_button_timer_handler},
 #endif
 #if (FB_JOYSTICKS)
-		{APP_KEY_PROCESS_TIMER,						(ke_msg_func_t) app_key_process_timer_handler},
-		{APP_KEY_SCAN_TIMER,						(ke_msg_func_t) app_key_scan_timer_handler},
+		{APP_KEY_PROCESS_TIMER,									(ke_msg_func_t) app_key_process_timer_handler},
+		{APP_KEY_SCAN_TIMER,										(ke_msg_func_t) app_key_scan_timer_handler},
+#endif
+#if	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+		{APP_MPU6050_TEMPERATURE_TEST_TIMER,		(ke_msg_func_t) app_mpu6050_temperature_test_timer_handler},
+		{APP_MPU6050_ADD_READ_TIMER,						(ke_msg_func_t) app_mpu6050_addr_read_test_timer_handler},
+#endif
+#if	(FB_BIT)
+		{APP_TEST_DATA_SEND_TIMER,							(ke_msg_func_t) app_test_data_send_timer_handler},	
+		{APP_TEST_PASSED_TIMER,							(ke_msg_func_t) app_test_passed_timer_handler},	
+		{APP_TEST_ERROR_TIMER,							(ke_msg_func_t) app_test_error_timer_handler},	
+		{APP_TEST_SYS_LED_TIMER,							(ke_msg_func_t) app_test_led_process_timer_handler},	
+//		{APP_TEST_DONE_TIMER,							(ke_msg_func_t) app_test_done_timer_handler},			
 #endif
 #endif
 #endif

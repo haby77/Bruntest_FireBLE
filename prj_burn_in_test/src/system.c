@@ -26,6 +26,10 @@
 #include "button.h"
 #include "lib.h"
 #include "usr_design.h"
+#if	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+#include	"i2c.h"
+#include	"mpu6050.h"
+#endif
 
 /**
  ****************************************************************************************
@@ -63,6 +67,10 @@ static void SystemIOCfg(void)
     syscon_SetPMCR1(QN_SYSCON, P20_GPIO_16_PIN_CTRL
                              | P21_GPIO_17_PIN_CTRL
                              | P22_GPIO_18_PIN_CTRL
+#if	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+                             | P23_I2C_SDA_PIN_CTRL
+                             | P24_I2C_SCL_PIN_CTRL
+#endif
                              | P23_GPIO_19_PIN_CTRL
                              | P24_GPIO_20_PIN_CTRL
                              | P25_GPIO_21_PIN_CTRL
@@ -191,6 +199,15 @@ void SystemInit(void)
     uart_tx_enable(QN_DEBUG_UART, MASK_ENABLE);
     uart_rx_enable(QN_DEBUG_UART, MASK_ENABLE);
 #endif
+
+#if 	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+		i2c_init(I2C_SCL_RATIO(40000), usr_env.i2cbuffer, 104);
+#endif
+
+#if	(FB_BIT)
+		timer_init(QN_TIMER0, timer0_callback);
+#endif
+
 }
 
 

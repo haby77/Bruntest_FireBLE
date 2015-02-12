@@ -113,6 +113,8 @@
 #define CONFIG_I2C_DEFAULT_IRQHANDLER                   TRUE        /*!< Enable/Disable I2C Default IRQ Handler */
 #define CONFIG_I2C_ENABLE_INTERRUPT                     FALSE       /*!< Enable/Disable(Polling) I2C Interrupt */
 
+#define	CONFIG_ENABLE_DRIVER_MPU6050										TRUE				/*!< Enable/Disable MPU6050 Driver */
+
 #define CONFIG_ENABLE_DRIVER_TIMER0                     TRUE        /*!< Enable/Disable TIMER Driver */
 #define CONFIG_TIMER0_DEFAULT_IRQHANDLER                TRUE        /*!< Enable/Disable TIMER0 Default IRQ Handler */
 #define CONFIG_TIMER0_ENABLE_INTERRUPT                  TRUE        /*!< Enable/Disable TIMER0 Interrupt */
@@ -242,6 +244,7 @@
 
 #define UART_RX_ACTIVE_BIT_EN                           FALSE       /*!< Enable/Disable uart rx active bit set */
 #define SPI_RX_ACTIVE_BIT_EN                            FALSE       /*!< Enable/Disable spi rx active bit set */
+
 
 /// @}QN_DRIVER_CONFIG
 

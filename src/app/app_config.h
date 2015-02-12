@@ -65,7 +65,13 @@
 #else
 		#define	FB_JOYSTICKS						0
 #endif
+#if	(defined(CFG_BURN_IN_TEST))
+		#define	FB_BIT									1
+#else	
+		#define	FB_BIT									0
 #endif
+#endif
+
 
 /// Work Mode
 #define WORK_MODE_SOC               0

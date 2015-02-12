@@ -40,6 +40,14 @@
 #if (FB_JOYSTICKS)
 #include "joysticks.h"
 #endif
+#if 	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+#include 	"i2c.h"
+#include	"mpu6050.h"		
+#endif
+#if	(FB_BIT)
+#include 	"timer.h"
+#include	"buzz.h"
+#endif
 
 /*
  * MACRO DEFINITIONS
@@ -61,8 +69,8 @@
 #define EVENT_BUTTON1_PRESS_ID            0
 
 ///IOS Connection Parameter
-#define IOS_CONN_INTV_MAX                              0x0010
-#define IOS_CONN_INTV_MIN                              0x0008
+#define IOS_CONN_INTV_MAX                              0x0080
+#define IOS_CONN_INTV_MIN                              0x0040
 #define IOS_SLAVE_LATENCY                              0x0000
 #define IOS_STO_MULT                                   0x012c
 
@@ -81,10 +89,12 @@ static void adv_wdt_to_handler(void)
                           app_env.scanrsp_data, app_set_scan_rsp_data(app_get_local_service_flag()),
                           GAP_ADV_FAST_INTV1, GAP_ADV_FAST_INTV2);
 }
-struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE, false, adv_wdt_to_handler,0};
+struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE, false, adv_wdt_to_handler,0,0,0,0};
 #else
-struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE,0};
+struct usr_env_tag usr_env = {LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE,0,0,0,0};
 #endif
+
+struct test_data_tag test_data = {0,0,0,0,0,0,0};
 
 /*
  * FUNCTION DEFINITIONS
@@ -137,6 +147,30 @@ static void usr_led1_process(void)
         led_set(1, LED_ON);
         ke_timer_set(APP_SYS_LED_1_TIMER, TASK_APP, usr_env.led1_on_dur);
     }
+}
+
+/**
+ ****************************************************************************************
+ * @brief   Led 1 flash process
+ ****************************************************************************************
+ */
+int app_test_led_process_timer_handler(ke_msg_id_t const msgid, void const *param,
+                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+{
+    if(led_get(2) == LED_ON && led_get(3) == LED_OFF)
+    {
+        led_set(2, LED_OFF);
+        led_set(3, LED_ON);
+        ke_timer_set(APP_TEST_SYS_LED_TIMER, TASK_APP, 100);
+    }
+    else
+    if(led_get(2) == LED_OFF && led_get(3) == LED_ON)		
+    {
+        led_set(2, LED_ON);
+        led_set(3, LED_OFF);
+        ke_timer_set(APP_TEST_SYS_LED_TIMER, TASK_APP,100);
+    }
+		return(KE_MSG_CONSUMED);
 }
 
 /**
@@ -247,12 +281,39 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
             break;
 				case QPPS_DAVA_VAL_IND:
 				{
-						if (((struct qpps_data_val_ind*)param)->data[0] == 'C' )
-							usr_env.test_flag  = 1;
-						app_qpps_data_send(app_qpps_env->conhdl,0,((struct qpps_data_val_ind*)param)->length,((struct qpps_data_val_ind*)param)->data);
+//						if (((struct qpps_data_val_ind*)param)->data[0] == 'C' )
+//							usr_env.test_flag  = 1;
+//						else
+//							if 		(((struct qpps_data_val_ind*)param)->data[0] == 'T' )				
+//									ke_timer_set(APP_MPU6050_TEMPERATURE_TEST_TIMER,TASK_APP,2);
+						//app_qpps_data_send(app_qpps_env->conhdl,0,((struct qpps_data_val_ind*)param)->length,((struct qpps_data_val_ind*)param)->data);
+						switch(((struct qpps_data_val_ind*)param)->data[0])
+						{
+								case	'T'	:
+								{
+										ke_timer_set(APP_MPU6050_TEMPERATURE_TEST_TIMER,TASK_APP,2);
+								}break;
+								case	'P'	:
+								{
+										ke_timer_set(APP_TEST_PASSED_TIMER,TASK_APP,2);
+								}break;
+								case	'N'	:
+								{
+										usr_env.test_result = ((struct qpps_data_val_ind*)param)->data[1];
+										ke_timer_set(APP_TEST_ERROR_TIMER,TASK_APP,2);
+								}break;
+								case	'C'	:
+								{
+										app_gap_discon_req(app_env.dev_rec->conhdl);
+								}break;
+								
+								
+								default	:break;
+						}
 						for (uint8_t k = 0;k < ((struct qpps_data_val_ind*)param)->length;k++)
 							QPRINTF("%c",((struct qpps_data_val_ind*)param)->data[k]);
 						QPRINTF("\r\n");
+						usr_env.time++;
 				}
 					break;
 
@@ -294,6 +355,166 @@ int app_led_timer_handler(ke_msg_id_t const msgid, void const *param,
     return (KE_MSG_CONSUMED);
 }
 
+
+/**
+ ****************************************************************************************
+ * @brief Handles LED status timer.
+ *
+ * @param[in] msgid      APP_SYS_UART_DATA_IND
+ * @param[in] param      Pointer to struct app_uart_data_ind
+ * @param[in] dest_id    TASK_APP
+ * @param[in] src_id     TASK_APP
+ *
+ * @return If the message was consumed or not.
+ ****************************************************************************************
+ */
+int app_mpu6050_temperature_test_timer_handler(ke_msg_id_t const msgid, void const *param,
+                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+{
+		usr_env.mpu6050_data.temp_data = mpu6050_get_data(MPU6050_ADDR,TEMP_OUT_H);
+		ke_timer_set(APP_MPU6050_ADD_READ_TIMER,TASK_APP,2);
+		ke_timer_clear(APP_MPU6050_TEMPERATURE_TEST_TIMER,TASK_APP);
+
+    return (KE_MSG_CONSUMED);
+}
+
+/**
+ ****************************************************************************************
+ * @brief Handles LED status timer.
+ *
+ * @param[in] msgid      APP_SYS_UART_DATA_IND
+ * @param[in] param      Pointer to struct app_uart_data_ind
+ * @param[in] dest_id    TASK_APP
+ * @param[in] src_id     TASK_APP
+ *
+ * @return If the message was consumed or not.
+ ****************************************************************************************
+ */
+int app_mpu6050_addr_read_test_timer_handler(ke_msg_id_t const msgid, void const *param,
+                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+{
+		usr_env.mpu6050_data.addr_data = mpu6050_get_data(MPU6050_ADDR,WHO_AM_I);
+		//QPRINTF("0x%02X\r\n",usr_env.mpu6050_data.addr_data);
+		ke_timer_clear(APP_MPU6050_ADD_READ_TIMER,TASK_APP);
+		ke_timer_set(APP_TEST_DATA_SEND_TIMER,TASK_APP,2);
+
+    return (KE_MSG_CONSUMED);
+}
+
+/**
+ ****************************************************************************************
+ * @brief Handles LED status timer.
+ *
+ * @param[in] msgid      APP_SYS_UART_DATA_IND
+ * @param[in] param      Pointer to struct app_uart_data_ind
+ * @param[in] dest_id    TASK_APP
+ * @param[in] src_id     TASK_APP
+ *
+ * @return If the message was consumed or not.
+ ****************************************************************************************
+ */
+int app_test_data_send_timer_handler(ke_msg_id_t const msgid, void const *param,
+                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+{
+		uint8_t val[12];
+//		test_data.time_flag = 'T';
+//		test_data.time = usr_env.time;
+//		test_data.mpu6050_flag = 'P';
+//		test_data.mpu6050_addr_flag = 'A';
+//		test_data.mpu6050_addr = usr_env.mpu6050_data.addr_data;
+//		test_data.mpu6050_temp_flag = 'T';
+//		test_data.mpu6050_temp = usr_env.mpu6050_data.temp_data;
+//		memcpy(val,&test_data,sizeof(struct test_data_tag));
+//		QPRINTF("sizeof is %d",sizeof(struct test_data_tag));
+		val[0] = 'T';
+		val[1] = usr_env.time >> 24;
+		val[2] = usr_env.time >> 16;
+		val[3] = usr_env.time >> 8;
+		val[4] = usr_env.time & 0x000000ff;
+		val[5] = 'P';
+		val[6] = 'A';
+		val[7] = usr_env.mpu6050_data.addr_data >> 8;
+		val[8] = usr_env.mpu6050_data.addr_data & 0x00ff;		
+		val[9] = 'T';
+		val[10] = usr_env.mpu6050_data.temp_data >> 8;
+		val[11] = usr_env.mpu6050_data.temp_data & 0x00ff;	
+		//QPRINTF("0x%X\r\n",test_data.mpu6050_addr);
+		app_qpps_data_send(app_qpps_env->conhdl,0,12,val);
+    return (KE_MSG_CONSUMED);
+}
+
+
+/**
+ ****************************************************************************************
+ * @brief Handles LED status timer.
+ *
+ * @param[in] msgid      APP_SYS_UART_DATA_IND
+ * @param[in] param      Pointer to struct app_uart_data_ind
+ * @param[in] dest_id    TASK_APP
+ * @param[in] src_id     TASK_APP
+ *
+ * @return If the message was consumed or not.
+ ****************************************************************************************
+ */
+int app_test_passed_timer_handler(ke_msg_id_t const msgid, void const *param,
+                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+{
+		led_set(2,LED_ON);
+		led_set(3,LED_ON);
+		usr_env.test_flag  = 1;
+    return (KE_MSG_CONSUMED);
+}
+
+/**
+ ****************************************************************************************
+ * @brief Handles LED status timer.
+ *
+ * @param[in] msgid      APP_SYS_UART_DATA_IND
+ * @param[in] param      Pointer to struct app_uart_data_ind
+ * @param[in] dest_id    TASK_APP
+ * @param[in] src_id     TASK_APP
+ *
+ * @return If the message was consumed or not.
+ ****************************************************************************************
+ */
+int app_test_error_timer_handler(ke_msg_id_t const msgid, void const *param,
+                               ke_task_id_t const dest_id, ke_task_id_t const src_id)
+{
+		switch(usr_env.test_result)
+		{
+			case	0x30+0x01:
+			{
+					led_set(2,LED_ON);
+					led_set(3,LED_OFF);
+			}break;
+			case	0x30+0x02:
+			{
+					led_set(2,LED_OFF);
+					led_set(3,LED_ON);					
+			}break;
+			case	0x30+0x04:
+			{
+					buzzer_on(BUZZ_VOL_HIGH);
+			}break;
+			case	0x30+0x03:
+			{
+					led_set(2,LED_ON);
+					led_set(3,LED_OFF);
+					ke_timer_set(APP_TEST_SYS_LED_TIMER, TASK_APP,100);
+			}break;
+			case	0x30+0x07:
+			{
+					led_set(2,LED_ON);
+					led_set(3,LED_OFF);
+					ke_timer_set(APP_TEST_SYS_LED_TIMER, TASK_APP,100);
+					buzzer_on(BUZZ_VOL_HIGH);
+			}break;
+			
+			default	:break;
+		}
+		usr_env.test_flag  = 1;
+    return (KE_MSG_CONSUMED);
+}
 /**
  ****************************************************************************************
  * @brief Handles advertising mode timer event.
@@ -333,6 +554,12 @@ int app_gap_adv_intv_update_timer_handler(ke_msg_id_t const msgid, void const *p
  */
 void usr_sleep_restore(void)
 {
+#if 	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+		i2c_init(I2C_SCL_RATIO(40000), usr_env.i2cbuffer, 104);
+#endif
+#if	(FB_BIT)
+		timer_init(QN_TIMER0, timer0_callback);
+#endif
 #if QN_DBG_PRINT
     uart_init(QN_DEBUG_UART, USARTx_CLK(0), UART_9600);
     uart_tx_enable(QN_DEBUG_UART, MASK_ENABLE);
@@ -523,6 +750,11 @@ void usr_button1_cb(void)
     ke_evt_set(1UL << EVENT_BUTTON1_PRESS_ID);
 }
 
+void timer0_callback(void)
+{
+		usr_env.time++;
+}
+
 /**
  ****************************************************************************************
  * @brief   All GPIO interrupt callback
@@ -558,6 +790,15 @@ void gpio_interrupt_callback(enum gpio_pin pin)
  */
 void usr_init(void)
 {
+#if 	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
+		mpu6050_init();
+#endif
+#if	(FB_BIT)
+		usr_env.time = 0;
+    timer_config(QN_TIMER0, TIMER_PSCAL_DIV, TIMER_COUNT_MS(1000, TIMER_PSCAL_DIV));
+    timer_enable(QN_TIMER0, MASK_DISABLE);
+#endif	
+
     if(KE_EVENT_OK != ke_evt_callback_set(EVENT_BUTTON1_PRESS_ID, 
                                             app_event_button1_press_handler))
     {

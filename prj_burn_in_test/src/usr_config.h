@@ -24,12 +24,15 @@
 #define CFG_WM_SOC
 
  /// Evaluation board indication
- // The GPIOs used for FireBlue's LED and button are different from FireBlue.
- // If the FireBlue is used, the following macro shall be defined.
+ // The GPIOs used for FireBLE's LED and button are different from FireBLE.
+ // If the FireBLE is used, the following macro shall be defined.
  #define CFG_FireBLE
  
- ///FireBlue Joystick button
+ ///FireBLE Joystick button
 #define	CFG_JOYSTICKS
+
+///FireBLE Burn in test
+#define	CFG_BURN_IN_TEST
 
 /// Easy ACI
 // #define CFG_EACI
