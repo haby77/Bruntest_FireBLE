@@ -29,11 +29,19 @@
  ****************************************************************************************
  */
  
+#define	DISCON_COUNT_MAX	100
+ 
 typedef struct	gsensor_data_tag
 {
 		int16_t	temp_data;
 		int16_t	addr_data;
 } gsensor_data;
+
+typedef struct 	discon_reason_tag
+{
+		uint8_t nb;
+		uint8_t reason[DISCON_COUNT_MAX];
+} discon_reason;
 
 struct usr_env_tag
 {
@@ -50,6 +58,7 @@ struct usr_env_tag
 		gsensor_data mpu6050_data;	
 		uint32_t time;
 		uint8_t test_result;
+		discon_reason usr_discon;
 };
 
 struct	test_data_tag
@@ -64,6 +73,8 @@ struct	test_data_tag
 		int16_t		mpu6050_temp;
 #endif
 };
+
+
 
 extern	struct test_data_tag	test_data;
 

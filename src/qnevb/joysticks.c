@@ -5,6 +5,7 @@
 #include "adc.h"
 #include "app_task.h"
 #include "led.h"
+#include	"buzz.h"
 
 
 #if	FB_JOYSTICKS
@@ -89,6 +90,10 @@ int app_key_process_timer_handler(ke_msg_id_t const msgid, void const *param,
                 }//if APP_ADV ,stop ADV and sleep.
 								QPRINTF("\r\nkey_up!\r\n");
 								key_value0 = 0;
+								buzzer_off();
+								ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
+								led_set(2,LED_OFF);
+								led_set(3,LED_OFF);
 								break;
 								
 			case	key_left:

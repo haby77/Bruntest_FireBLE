@@ -243,7 +243,14 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
 
         case GAP_DISCON_CMP_EVT:
             usr_led1_set(LED_ON_DUR_IDLE, LED_OFF_DUR_IDLE);
-
+						if (usr_env.usr_discon.nb < DISCON_COUNT_MAX)
+						{
+								//QPRINTF("reason is 0x%X\r\n",((struct gap_discon_cmp_evt*)param)->reason);
+								usr_env.usr_discon.reason[usr_env.usr_discon.nb + 1] = ((struct gap_discon_cmp_evt*)param)->reason;
+						}
+						else
+								usr_env.usr_discon.nb = 98;
+						usr_env.usr_discon.nb++;
 						if (!usr_env.test_flag)
             // start adv
             app_gap_adv_start_req(GAP_GEN_DISCOVERABLE|GAP_UND_CONNECTABLE,
@@ -293,19 +300,37 @@ void app_task_msg_hdl(ke_msg_id_t const msgid, void const *param)
 						switch(((struct qpps_data_val_ind*)param)->data[0])
 						{
 								case	'T'	:
+								case	't'	:
 								{
 										ke_timer_set(APP_MPU6050_TEMPERATURE_TEST_TIMER,TASK_APP,2);
 								}break;
 								case	'P'	:
+								case	'p'	:
 								{
 										ke_timer_set(APP_TEST_PASSED_TIMER,TASK_APP,2);
 								}break;
 								case	'N'	:
+								case	'n'	:
 								{
 										usr_env.test_result = ((struct qpps_data_val_ind*)param)->data[1];
 										ke_timer_set(APP_TEST_ERROR_TIMER,TASK_APP,2);
 								}break;
+								case	'D'	:
+								case	'd'	:
+								{		
+											QPRINTF("discon timer is %d\r\n",usr_env.usr_discon.nb);
+											if (usr_env.usr_discon.nb > 0)
+											{
+													app_qpps_data_send(app_qpps_env->conhdl,0,(usr_env.usr_discon.nb + 1),usr_env.usr_discon.reason);
+											}
+											else
+											{
+													app_qpps_data_send(app_qpps_env->conhdl,0,1,usr_env.usr_discon.reason);
+											}
+								}
+								break;
 								case	'C'	:
+								case	'c'	:
 								{
 										app_gap_discon_req(app_env.dev_rec->conhdl);
 								}break;
@@ -519,12 +544,32 @@ int app_test_error_timer_handler(ke_msg_id_t const msgid, void const *param,
 			case	0x30+0x04:
 			{
 					buzzer_on(BUZZ_VOL_HIGH);
+					ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
+					led_set(2,LED_OFF);
+					led_set(3,LED_OFF);					
 			}break;
 			case	0x30+0x03:
 			{
+					buzzer_off();
 					led_set(2,LED_ON);
 					led_set(3,LED_OFF);
 					ke_timer_set(APP_TEST_SYS_LED_TIMER, TASK_APP,100);
+			}break;
+			case	0x30+0x05:
+			{
+					buzzer_off();
+					ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
+					led_set(2,LED_ON);
+					led_set(3,LED_OFF);
+					buzzer_on(BUZZ_VOL_HIGH);
+			}break;
+			case	0x30+0x06:
+			{
+					buzzer_off();
+					ke_timer_clear(APP_TEST_SYS_LED_TIMER,TASK_APP);
+					led_set(2,LED_OFF);
+					led_set(3,LED_ON);
+					buzzer_on(BUZZ_VOL_HIGH);
 			}break;
 			case	0x30+0x07:
 			{
@@ -824,6 +869,8 @@ void gpio_interrupt_callback(enum gpio_pin pin)
  */
 void usr_init(void)
 {
+		usr_env.usr_discon.nb = 0;
+		usr_env.usr_discon.reason[0] = 'R';
 #if 	(CONFIG_ENABLE_DRIVER_MPU6050 == TRUE)
 		mpu6050_init();
 #endif

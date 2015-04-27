@@ -64,10 +64,10 @@ void mpu6050_init(void)
 {
         I2C_BYTE_WRITE(MPU6050_ADDR,PWR_MGMT1,DEVICE_RESET_EN);
         //delay 200ms,necessary
-        delay(200000);
+        delay(1000000);
         I2C_BYTE_WRITE(MPU6050_ADDR,PWR_MGMT1,DEVICE_RESET_DIS);
         //delay 200ms,necessary
-        delay(200000);
+        delay(1000000);
         //select the clk as gyro z-axis
         I2C_BYTE_WRITE(MPU6050_ADDR,PWR_MGMT1,CLK_SEL_AXIS_Z);
         //sampling rate of gyro :1khz
